@@ -1,4 +1,4 @@
-module OggToMp3
+module github.com/Wameuh/Golang-OggToMp3
 
 go 1.18
 
