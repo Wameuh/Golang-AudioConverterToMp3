@@ -1,11 +1,11 @@
-package main
+package OggToMp3
 
 import (
 	"errors"
 	"fmt"
 	"io"
 	"math"
-	"os"
+	"unsafe"
 
 	"bytes"
 
@@ -13,43 +13,15 @@ import (
 	"github.com/viert/go-lame"
 )
 
-func main() {
-	file, err := os.Open("assets/test.ogg")
-	defer file.Close()
-	if err != nil {
-		fmt.Println("error: ", err)
-		return
-	}
+func float32toint16(num float32) int16 {
 
-	audioSlice, format, err := GetByteSlice(file)
-	if err != nil {
-		fmt.Println("error in GetByteSlice: ", err)
-		return
-	}
-
-	fmt.Println("sampleRate: ", format.SampleRate)
-
-	mp3AudioSlice := EncodeMP3Slice(audioSlice, format)
-
-	err = os.WriteFile("test.mp3", mp3AudioSlice, 0777)
-	if err != nil {
-		fmt.Println("error in WriteFile: ", err)
-		return
-	}
-
-	fmt.Println("program end")
-
+	return int16(math.Max(1-math.Pow(2, 15), (math.Min(math.Pow(2, 15)-1, float64(num)*math.Pow(2, 16)))))
 }
 
-func float32tobyte(num float32) byte {
-
-	return byte(math.Max(0, (math.Min(255, float64(num)*math.Pow(2, 7)+math.Pow(2, 7)))))
-}
-
-func convertSlice(mySlice []float32) []byte {
-	retval := make([]byte, 0)
+func convertSliceToInt16Slice(mySlice []float32) []int16 {
+	retval := make([]int16, 0)
 	for _, v := range mySlice {
-		retval = append(retval, float32tobyte(v))
+		retval = append(retval, float32toint16(v))
 	}
 	return retval
 }
@@ -63,13 +35,12 @@ func GetByteSlice(r io.Reader) ([]byte, *oggvorbis.Format, error) {
 
 	oggAudio, format, err := oggvorbis.ReadAll(r)
 	if err != nil {
-		fmt.Println("erreur reading oggfile", err)
 		return nil, nil, errors.New("Could not decode ogg file?")
 	}
-	fmt.Println("oggAudio length: ", len(oggAudio))
-	audioBytes := convertSlice(oggAudio)
-	fmt.Println("audioBytes length: ", len(audioBytes))
-	return audioBytes, format, nil
+
+	audioBytes := convertSliceToInt16Slice(oggAudio)
+
+	return *(*[]byte)(unsafe.Pointer(&audioBytes)), format, nil
 }
 
 func EncodeMP3Slice(input []byte, format *oggvorbis.Format) []byte {
