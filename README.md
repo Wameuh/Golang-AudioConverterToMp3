@@ -15,8 +15,7 @@ This package use differents go-packages (thanks for them):
 * [go-audio/wav](https://github.com/go-audio/wav)
 * [minimp3](https://github.com/tosone/minimp3)
 
-# Example of implementation
-
+# Examples of implementation
 ```go
 func main() {
     //open file
@@ -34,18 +33,18 @@ func main() {
 		return
 	}
 
-	//Convert data
-	_, err := converter.ConvertToMp3()
+	// Convert data
+	mp3SizeInBytes, err := converter.ConvertToMp3()
 	if err != nil {
 		fmt.Println("error in converting: ", err)
 		return
 	}
+	fmt.Println("Data converted, size of mp3 data:", mp3SizeInBytes)
 
-    //write into a new file
-	err = converter.WriteFile("myOutputFile.mp3")
+    // Write into a new file
+	err := os.WriteFile("outputFile.mp3", c.GetDataConverted(), 0644)
 	if err != nil {
-		fmt.Println("error in writing file: ", err)
-		return
+		return err
 	}
 
 	fmt.Println("Job is done!")

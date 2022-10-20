@@ -29,7 +29,7 @@ type Converter struct {
 	inputNumChan    int
 	inputSampleRate int
 	toDiscard       int // used for wav format to discard the header
-
+	conversionDone  bool
 }
 
 func NewConverter(inputFile *os.File) (*Converter, error) {
@@ -228,11 +228,6 @@ func (c *Converter) ConvertToMp3() (int64, error) {
 
 }
 
-func (c *Converter) WriteBufferToFile(filepath string) error {
-
-	err := os.WriteFile(filepath, c.output.Bytes(), 0644)
-	if err != nil {
-		return err
-	}
-	return nil
+func (c *Converter) GetDataConverted() []byte {
+	return c.output.Bytes()
 }
