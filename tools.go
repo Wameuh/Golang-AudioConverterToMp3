@@ -1,9 +1,9 @@
 package GoAudioConverterToMp3
 
 import (
+	"encoding/binary"
 	"io"
 	"math"
-	"unsafe"
 
 	"github.com/jfreymuth/oggvorbis"
 )
@@ -13,22 +13,18 @@ func GetByteSlice(r io.Reader) ([]byte, *oggvorbis.Format, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-
-	//oggvorbis give []float32 slice, we need to convert it to []in16
-	audioBytes := convertSliceToInt16Slice(oggAudio)
-
-	return *(*[]byte)(unsafe.Pointer(&audioBytes)), format, nil
+	return convertSliceToInt16Slice(oggAudio), format, nil
 }
 
-func convertSliceToInt16Slice(mySlice []float32) []int16 {
-	retval := make([]int16, 0)
-	for _, v := range mySlice {
-		retval = append(retval, float32toint16(v))
+func convertSliceToInt16Slice(mySlice []float32) []byte {
+	retval := make([]byte, len(mySlice)*2)
+	for i, v := range mySlice {
+		binary.LittleEndian.PutUint16(retval[i*2:], uint16(float32toint16(v)))
 	}
 	return retval
 }
 
 func float32toint16(num float32) int16 {
 
-	return int16(math.Max(1-math.Pow(2, 15), (math.Min(math.Pow(2, 15)-1, float64(num)*math.Pow(2, 16)))))
+	return int16(math.Max(1-(1<<15), (math.Min((1<<15)-1, float64(num)*(1<<16)))))
 }
