@@ -28,18 +28,19 @@ func main() {
 
 	// Create converter
 	converter, err := NewConverter(file)
+	defer converter.Close()
 	if err != nil {
 		fmt.Println("error creating converter: ", err)
 		return
 	}
 
 	// Convert data
-	mp3SizeInBytes, err := converter.ConvertToMp3()
+	inputAudioSizeInBytes, err := converter.ConvertToMp3()
 	if err != nil {
 		fmt.Println("error in converting: ", err)
 		return
 	}
-	fmt.Println("Data converted, size of mp3 data:", mp3SizeInBytes)
+	fmt.Println("Data converted, size of audio source:", inputAudioSizeInBytes)
 
     // Write into a new file
 	err := os.WriteFile("outputFile.mp3", c.GetDataConverted(), 0644)
@@ -55,3 +56,4 @@ func main() {
 # TODO
 * Testings
 * Support other bit depth than 16 for wav
+* Support tags

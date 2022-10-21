@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -29,7 +30,6 @@ type Converter struct {
 	inputNumChan    int
 	inputSampleRate int
 	toDiscard       int // used for wav format to discard the header
-	conversionDone  bool
 }
 
 func NewConverter(inputFile *os.File) (*Converter, error) {
@@ -162,13 +162,14 @@ func (c *Converter) FromWavToMp3() (n int64, err error) { //use go-audio/wav
 	if err != nil {
 		return 0, err
 	}
-
+	c.inputFile.Seek(0, io.SeekStart)
 	//Discard the header of the Wav
 	_, err = r.Discard(c.toDiscard)
 	if err != nil {
 		return 0, err
 	}
-	n, err = r.WriteTo(c.encoder)
+	test := new(bytes.Buffer)
+	n, err = r.WriteTo(test)
 	c.encoder.Flush()
 
 	return n, err
