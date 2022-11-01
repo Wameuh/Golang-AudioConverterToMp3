@@ -151,25 +151,26 @@ func (c *Converter) FromOggToMp3() (int64, error) { // use oggvorbis
 
 }
 
-func (c *Converter) FromWavToMp3() (n int64, err error) { //use go-audio/wav
+func (c *Converter) FromWavToMp3() (int64, error) { //use go-audio/wav
 	r := bufio.NewReader(c.inputFile)
 
-	err = c.wavGetFormat()
+	err := c.wavGetFormat()
 	if err != nil {
 		return 0, err
 	}
 
+	err = c.SetConverterFormat()
 	if err != nil {
 		return 0, err
 	}
+
 	c.inputFile.Seek(0, io.SeekStart)
 	//Discard the header of the Wav
 	_, err = r.Discard(c.toDiscard)
 	if err != nil {
 		return 0, err
 	}
-	test := new(bytes.Buffer)
-	n, err = r.WriteTo(test)
+	n, err := r.WriteTo(c.encoder)
 	c.encoder.Flush()
 
 	return n, err

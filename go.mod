@@ -1,9 +1,11 @@
 module github.com/Wameuh/Golang-AudioConverterToMp3
+
 go 1.18
 
 require (
 	github.com/go-audio/wav v1.1.0
 	github.com/jfreymuth/oggvorbis v1.0.4
+	github.com/tcolgate/mp3 v0.0.0-20170426193717-e79c5a46d300
 	github.com/tosone/minimp3 v1.0.1
 	github.com/viert/go-lame v0.0.0-20201108052322-bb552596b11d
 )

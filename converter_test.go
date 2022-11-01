@@ -1,9 +1,52 @@
 package GoAudioConverterToMp3
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"testing"
+
+	"github.com/tcolgate/mp3"
 )
+
+func getDuration(conv *Converter) float64 {
+	file, err := os.Create("tempfile.mp3")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+	defer os.Remove(file.Name())
+	_, err = file.Write(conv.GetDataConverted())
+	if err != nil {
+		fmt.Println(err)
+	}
+	file.Sync()
+	file.Close()
+
+	file, err = os.Open("tempfile.mp3")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	t := 0.0
+	d := mp3.NewDecoder(file)
+	var f mp3.Frame
+	skipped := 0
+
+	for {
+
+		if err := d.Decode(&f, &skipped); err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(err)
+			return 0
+		}
+
+		t = t + f.Duration().Seconds()
+	}
+	return t
+}
 
 func TestNewConverter(t *testing.T) {
 	// init
@@ -180,6 +223,11 @@ func TestFromOggToMp3(t *testing.T) {
 	if n < 74*44100*2*2 {
 		t.Fatalf(`error FromOggToMp3(), amount of data is incorrect, is %d, expected more than %d`, n, 74*44100*2*2)
 	}
+	duration := getDuration(conv)
+	if duration > 75 || duration < 74 {
+
+		t.Fatalf(`error FromOggToMp3(), duration of mp3 is incorrect, is %f, expected around %f`, duration, 74.42)
+	}
 }
 
 func TestFromWavToMp3(t *testing.T) {
@@ -198,6 +246,7 @@ func TestFromWavToMp3(t *testing.T) {
 
 	// proceed
 	n, err := conv.FromWavToMp3()
+	duration := getDuration(conv)
 
 	// test
 	if err != nil {
@@ -205,6 +254,10 @@ func TestFromWavToMp3(t *testing.T) {
 	}
 	if n != conv.inputFileStat.Size()-int64(conv.toDiscard) {
 		t.Fatalf(`error FromOggToMp3(), audio source size incorrect, is %d, expected %d`, n, conv.inputFileStat.Size()-int64(conv.toDiscard))
+	}
+	if duration > 61 || duration < 60 {
+
+		t.Fatalf(`error FromOggToMp3(), duration of mp3 is incorrect, is %f, expected around %f`, duration, 60.0555)
 	}
 }
 
@@ -224,6 +277,7 @@ func TestFromMp3toMp3(t *testing.T) {
 
 	// proceed
 	n, err := conv.FromMp3ToMp3()
+	duration := getDuration(conv)
 
 	// test
 	if err != nil {
@@ -231,6 +285,10 @@ func TestFromMp3toMp3(t *testing.T) {
 	}
 	if n < 26*16000*2 {
 		t.Fatalf(`error FromMp3ToMp3(), n is %d, expected more than %d`, n, 26*16000*2)
+	}
+	if duration > 27 || duration < 26 {
+
+		t.Fatalf(`error FromOggToMp3(), duration of mp3 is incorrect, is %f, expected around %f`, duration, 26.244000)
 	}
 
 }
