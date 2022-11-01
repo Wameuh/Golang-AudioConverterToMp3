@@ -10,12 +10,12 @@ import (
 )
 
 func getDuration(conv *Converter) float64 {
-	file, err := os.Create(conv.inputFile.Name() + "tempfile.mp3")
+	file, err := os.Create("tempfile.mp3")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer file.Close()
-	//defer os.Remove(file.Name())
+	defer os.Remove(file.Name())
 	_, err = file.Write(conv.GetDataConverted())
 	if err != nil {
 		fmt.Println(err)
